@@ -1,6 +1,9 @@
 package limiter
 
-import "errors"
+import (
+	"errors"
+	"log"
+)
 
 var ErrServiceNotFound error = errors.New("Service not found")
 
@@ -25,40 +28,45 @@ type ServiceRegistry interface {
 }
 
 type ServiceRegistryImpl struct {
-	servicesMap map[string]Service
+	servicesMap map[string]*Service
 }
 
 func (sr *ServiceRegistryImpl) CreateService(body CreateServiceReqBody) (Service, error) {
-	sr.servicesMap[body.ID] = Service{
+	log.Printf("action=create_service id=%q usage_price_in_tokens=%d", body.ID, body.UsagePriceInTokens)
+	sr.servicesMap[body.ID] = &Service{
 		ID:                 body.ID,
 		UsagePriceInTokens: body.UsagePriceInTokens,
 	}
 	val := sr.servicesMap[body.ID]
-	return val, nil
+	return *val, nil
 }
 
 func (sr *ServiceRegistryImpl) UpdateService(id string, body UpdateServiceReqBody) (Service, error) {
+	log.Printf("action=update_service id=%q usage_price_in_tokens=%d", id, body.usagePriceInTokens)
 	s, exists := sr.servicesMap[id]
 	if !exists {
+		log.Printf("action=update_service id=%q error=%q", id, ErrServiceNotFound)
 		return Service{}, ErrServiceNotFound
 	}
-	s = Service{
+	s = &Service{
 		ID:                 id,
 		UsagePriceInTokens: body.usagePriceInTokens,
 	}
-	return s, nil
+	return *s, nil
 }
 
 func (sr *ServiceRegistryImpl) GetService(id string) (Service, error) {
+	log.Printf("action=get_service id=%q", id)
 	s, exists := sr.servicesMap[id]
 	if !exists {
+		log.Printf("action=get_service id=%q error=%q", id, ErrServiceNotFound)
 		return Service{}, ErrServiceNotFound
 	}
-	return s, nil
+	return *s, nil
 }
 
 func NewServiceRegistry() ServiceRegistry {
 	return &ServiceRegistryImpl{
-		servicesMap: make(map[string]Service),
+		servicesMap: make(map[string]*Service),
 	}
 }

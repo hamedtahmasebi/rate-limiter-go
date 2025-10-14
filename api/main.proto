@@ -1,0 +1,19 @@
+syntax = "proto3";
+option go_package = "rate-limiter-go/api";
+
+message GetAccessStatusRequest {
+    string clientID = 1;
+    string serviceID = 2;
+    uint64 usageAmountReq = 3;
+}
+
+
+message GetAccessStatusResponse {
+    bool   isAllowed = 1;
+	uint64 retryAfterSeconds = 2;
+}
+
+
+service RateLimiter {
+    rpc GetAccessStatus(GetAccessStatusRequest) returns (GetAccessStatusResponse) {}
+}

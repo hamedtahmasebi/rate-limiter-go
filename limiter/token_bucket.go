@@ -1,6 +1,7 @@
 package limiter
 
 import (
+	"log"
 	"time"
 )
 
@@ -21,8 +22,8 @@ type Bucket struct {
 }
 
 type AccessStatusResponse struct {
-	isAllowed         bool
-	retryAfterSeconds uint64
+	IsAllowed         bool
+	RetryAfterSeconds uint64
 }
 
 type BucketStorage interface {
@@ -37,7 +38,13 @@ type BucketStorageImpl struct {
 }
 
 func (bs *BucketStorageImpl) CreateBucket(body CreateBucketReqBody) error {
-	bs.BucketsMap[body.ClientID][body.ServiceID] = &Bucket{
+	log.Printf("action=create_bucket client_id=%q service_id=%q initial_tokens=%d refill_rate_per_second=%d", body.ClientID, body.ServiceID, body.InitialTokens, body.RefillRatePerSecond)
+	clientServices, csExists := bs.BucketsMap[body.ClientID]
+	if !csExists {
+		clientServices = make(map[string]*Bucket)
+		bs.BucketsMap[body.ClientID] = clientServices
+	}
+	clientServices[body.ServiceID] = &Bucket{
 		clientID:            body.ClientID,
 		serviceID:           body.ServiceID,
 		tokens:              body.InitialTokens,
@@ -45,29 +52,39 @@ func (bs *BucketStorageImpl) CreateBucket(body CreateBucketReqBody) error {
 		CreatedAt:           time.Now(),
 		LastRefill:          time.Now(),
 	}
+	log.Printf("bucket_created client_id=%q service_id=%q", body.ClientID, body.ServiceID)
 	return nil
 }
 
 func (bs *BucketStorageImpl) ConsumeService(clientID string, serviceID string) (accRes AccessStatusResponse, err error) {
+	log.Printf("action=consume_service client_id=%q service_id=%q", clientID, serviceID)
 	requestedService, err := bs.ServiceRegistry.GetService(serviceID)
 	if err != nil {
+		log.Printf("error=service_not_found client_id=%q service_id=%q err=%v", clientID, serviceID, err)
 		return
 	}
 	b := bs.BucketsMap[clientID][serviceID]
 	refill(b)
+	log.Printf("bucket_status client_id=%q service_id=%q tokens=%d usage_price=%d", clientID, serviceID, b.tokens, requestedService.UsagePriceInTokens)
 	if b.tokens < requestedService.UsagePriceInTokens {
-		accRes.isAllowed = false
-		accRes.retryAfterSeconds = b.refillRatePerSecond * requestedService.UsagePriceInTokens
+		accRes.IsAllowed = false
+		accRes.RetryAfterSeconds = b.refillRatePerSecond * requestedService.UsagePriceInTokens
+		log.Printf("access_denied client_id=%q service_id=%q tokens=%d retry_after=%d", clientID, serviceID, b.tokens, accRes.RetryAfterSeconds)
 		return
 	}
 	b.tokens -= requestedService.UsagePriceInTokens
-	accRes.isAllowed = false
-	accRes.retryAfterSeconds = requestedService.UsagePriceInTokens / b.refillRatePerSecond
+	accRes.IsAllowed = true
+	accRes.RetryAfterSeconds = requestedService.UsagePriceInTokens / b.refillRatePerSecond
+	log.Printf("tokens_consumed client_id=%q service_id=%q tokens_left=%d", clientID, serviceID, b.tokens)
 	return
 }
 
 func refill(b *Bucket) {
-	b.tokens = uint64(time.Since(b.LastRefill).Seconds()) * b.refillRatePerSecond
+	refilled := uint64(time.Since(b.LastRefill).Seconds()) * b.refillRatePerSecond
+	if refilled > 0 {
+		b.tokens += refilled
+		log.Printf("bucket_refilled client_id=%q service_id=%q tokens_added=%d new_tokens=%d", b.clientID, b.serviceID, refilled, b.tokens)
+	}
 	b.LastRefill = time.Now()
 }
 
