@@ -28,7 +28,7 @@ type AccessStatusResponse struct {
 
 type BucketStorage interface {
 	CreateBucket(body CreateBucketReqBody) error
-	ConsumeService(clientID string, serviceID string) (AccessStatusResponse, error)
+	ConsumeService(clientID string, serviceID string, usageAmount uint64) (AccessStatusResponse, error)
 	// ConsumeTokens(clientID string, serviceID string, amount uint)
 }
 
@@ -56,7 +56,7 @@ func (bs *BucketStorageImpl) CreateBucket(body CreateBucketReqBody) error {
 	return nil
 }
 
-func (bs *BucketStorageImpl) ConsumeService(clientID string, serviceID string) (accRes AccessStatusResponse, err error) {
+func (bs *BucketStorageImpl) ConsumeService(clientID string, serviceID string, usageAmount uint64) (accRes AccessStatusResponse, err error) {
 	log.Printf("action=consume_service client_id=%q service_id=%q", clientID, serviceID)
 	requestedService, err := bs.ServiceRegistry.GetService(serviceID)
 	if err != nil {
@@ -64,6 +64,9 @@ func (bs *BucketStorageImpl) ConsumeService(clientID string, serviceID string) (
 		return
 	}
 	b := bs.BucketsMap[clientID][serviceID]
+	if b == nil {
+		return accRes, ErrServiceNotFound
+	}
 	refill(b)
 	log.Printf("bucket_status client_id=%q service_id=%q tokens=%d usage_price=%d", clientID, serviceID, b.tokens, requestedService.UsagePriceInTokens)
 	if b.tokens < requestedService.UsagePriceInTokens {
@@ -72,7 +75,7 @@ func (bs *BucketStorageImpl) ConsumeService(clientID string, serviceID string) (
 		log.Printf("access_denied client_id=%q service_id=%q tokens=%d retry_after=%d", clientID, serviceID, b.tokens, accRes.RetryAfterSeconds)
 		return
 	}
-	b.tokens -= requestedService.UsagePriceInTokens
+	b.tokens -= requestedService.UsagePriceInTokens * usageAmount
 	accRes.IsAllowed = true
 	accRes.RetryAfterSeconds = requestedService.UsagePriceInTokens / b.refillRatePerSecond
 	log.Printf("tokens_consumed client_id=%q service_id=%q tokens_left=%d", clientID, serviceID, b.tokens)
@@ -80,6 +83,9 @@ func (bs *BucketStorageImpl) ConsumeService(clientID string, serviceID string) (
 }
 
 func refill(b *Bucket) {
+	if b == nil {
+		return
+	}
 	refilled := uint64(time.Since(b.LastRefill).Seconds()) * b.refillRatePerSecond
 	if refilled > 0 {
 		b.tokens += refilled

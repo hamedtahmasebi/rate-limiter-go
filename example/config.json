@@ -1,0 +1,21 @@
+{
+    "rules": [
+        {
+            "name": "get_expensive_query_x",
+            "client_id": "web_app",
+            "service_id": "test_service",
+            "usage_price": 1,
+            "refill_rate_per_second": 1,
+            "initial_tokens": 10 
+        },
+
+        {
+            "name": "get_expensive_query_x",
+            "client_id": "mobile_app",
+            "service_id": "test_service",
+            "usage_price": 1,
+            "refill_rate_per_second": 1,
+            "initial_tokens": 10 
+        }
+    ]
+}

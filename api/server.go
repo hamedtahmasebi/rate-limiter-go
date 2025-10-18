@@ -19,7 +19,7 @@ func (s *Server) GetAccessStatus(ctx context.Context, req *GetAccessStatusReques
 		log.Printf("error getting service for service_id=%q: %s", req.ServiceID, err)
 		return nil, err
 	}
-	accessRes, err := s.BucketStorage.ConsumeService(req.ClientID, service.ID)
+	accessRes, err := s.BucketStorage.ConsumeService(req.ClientID, service.ID, req.UsageAmountReq)
 	if err != nil {
 		log.Printf("error consuming service for client_id=%q service_id=%q: %s", req.ClientID, req.ServiceID, err)
 		return nil, err
