@@ -35,7 +35,7 @@ func main() {
 	mainBucketStorage := limiter.NewBucketStorage(mainServiceRegistry)
 
 	for _, rule := range config.Rules {
-		log.Printf("event=create_service id=%q usage_price_in_tokens=%d", "test_service", 2)
+		log.Printf("event=create_service id=%q usage_price_in_tokens=%d", rule.ServiceID, rule.UsagePrice)
 		_, err := mainServiceRegistry.CreateService((limiter.CreateServiceReqBody{
 			ID:                 rule.ServiceID,
 			UsagePriceInTokens: rule.UsagePrice,
@@ -45,7 +45,7 @@ func main() {
 			panic(err)
 		}
 
-		log.Printf("event=create_bucket client_id=%q service_id=%q initial_tokens=%d refill_rate_per_second=%d", "main_client", rule.ServiceID, rule.InitialTokens, rule.RefillRatePerSecond)
+		log.Printf("event=create_bucket client_id=%q service_id=%q initial_tokens=%d refill_rate_per_second=%d", rule.ClientID, rule.ServiceID, rule.InitialTokens, rule.RefillRatePerSecond)
 		err = mainBucketStorage.CreateBucket(limiter.CreateBucketReqBody{
 			ClientID:            rule.ClientID,
 			ServiceID:           rule.ServiceID,

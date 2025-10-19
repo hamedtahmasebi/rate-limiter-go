@@ -1,7 +1,7 @@
 {
     "rules": [
         {
-            "name": "get_expensive_query_x",
+            "id": "get_expensive_query_x",
             "client_id": "web_app",
             "service_id": "test_service",
             "usage_price": 1,
@@ -10,7 +10,7 @@
         },
 
         {
-            "name": "get_expensive_query_x",
+            "id": "get_expensive_query_x",
             "client_id": "mobile_app",
             "service_id": "test_service",
             "usage_price": 1,
