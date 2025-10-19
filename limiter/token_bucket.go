@@ -63,7 +63,11 @@ func (bs *BucketStorageImpl) ConsumeService(clientID string, serviceID string, u
 		log.Printf("error=service_not_found client_id=%q service_id=%q err=%v", clientID, serviceID, err)
 		return
 	}
-	b := bs.BucketsMap[clientID][serviceID]
+	clientBucket := bs.BucketsMap[clientID]
+	if clientBucket == nil {
+		return accRes, ErrClientNotFound
+	}
+	b := clientBucket[serviceID]
 	if b == nil {
 		return accRes, ErrServiceNotFound
 	}

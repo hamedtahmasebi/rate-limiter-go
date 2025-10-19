@@ -5,7 +5,8 @@ import (
 	"log"
 )
 
-var ErrServiceNotFound error = errors.New("Service not found")
+var ErrServiceNotFound error = errors.New("service not found")
+var ErrClientNotFound error = errors.New("client not found")
 
 type Service struct {
 	ID                 string
@@ -18,7 +19,7 @@ type CreateServiceReqBody struct {
 }
 
 type UpdateServiceReqBody struct {
-	usagePriceInTokens uint64
+	UsagePriceInTokens uint64
 }
 
 type ServiceRegistry interface {
@@ -42,7 +43,7 @@ func (sr *ServiceRegistryImpl) CreateService(body CreateServiceReqBody) (Service
 }
 
 func (sr *ServiceRegistryImpl) UpdateService(id string, body UpdateServiceReqBody) (Service, error) {
-	log.Printf("action=update_service id=%q usage_price_in_tokens=%d", id, body.usagePriceInTokens)
+	log.Printf("action=update_service id=%q usage_price_in_tokens=%d", id, body.UsagePriceInTokens)
 	s, exists := sr.servicesMap[id]
 	if !exists {
 		log.Printf("action=update_service id=%q error=%q", id, ErrServiceNotFound)
@@ -50,7 +51,7 @@ func (sr *ServiceRegistryImpl) UpdateService(id string, body UpdateServiceReqBod
 	}
 	s = &Service{
 		ID:                 id,
-		UsagePriceInTokens: body.usagePriceInTokens,
+		UsagePriceInTokens: body.UsagePriceInTokens,
 	}
 	return *s, nil
 }
