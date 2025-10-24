@@ -6,7 +6,8 @@
             "service_id": "test_service",
             "usage_price": 1,
             "refill_rate_per_second": 1,
-            "initial_tokens": 10 
+            "initial_tokens": 10,
+            "max_tokens": 100
         },
 
         {
@@ -15,7 +16,8 @@
             "service_id": "test_service",
             "usage_price": 1,
             "refill_rate_per_second": 1,
-            "initial_tokens": 10 
+            "initial_tokens": 10,
+            "max_tokens": 100
         }
     ]
 }

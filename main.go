@@ -78,6 +78,7 @@ func main() {
 			ServiceID:           rule.ServiceID,
 			InitialTokens:       rule.InitialTokens,
 			RefillRatePerSecond: rule.RefillRatePerSecond,
+			MaxTokens:           rule.MaxTokens,
 		})
 		if err != nil {
 			log.Printf("event=create_bucket status=error error=%q", err)

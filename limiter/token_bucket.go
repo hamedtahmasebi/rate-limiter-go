@@ -11,6 +11,7 @@ type CreateBucketReqBody struct {
 	ServiceID           string
 	InitialTokens       uint64
 	RefillRatePerSecond uint64
+	MaxTokens           uint64
 }
 
 type Bucket struct {
@@ -20,6 +21,7 @@ type Bucket struct {
 	RefillRatePerSecond uint64     `json:"refill_rate_per_second"`
 	CreatedAt           time.Time  `json:"created_at"`
 	LastRefill          time.Time  `json:"last_refill"`
+	MaxTokens           uint64     `json:"max_tokens"`
 	Mu                  sync.Mutex `json:"-"`
 }
 
@@ -40,7 +42,10 @@ type BucketStorageImpl struct {
 }
 
 func (bs *BucketStorageImpl) CreateBucket(body CreateBucketReqBody) error {
-	log.Printf("event=create_bucket client_id=%q service_id=%q initial_tokens=%d refill_rate_per_second=%d", body.ClientID, body.ServiceID, body.InitialTokens, body.RefillRatePerSecond)
+	if body.MaxTokens <= 0 {
+		log.Fatalf("Max Tokens is not defined for bucket, client_id:%s | service_id:%s", body.ClientID, body.ServiceID)
+	}
+	log.Printf("event=create_bucket client_id=%q service_id=%q initial_tokens=%d refill_rate_per_second=%d max_tokens=%d", body.ClientID, body.ServiceID, body.InitialTokens, body.RefillRatePerSecond, body.MaxTokens)
 	clientServices, csExists := bs.BucketsMap[body.ClientID]
 	if !csExists {
 		clientServices = make(map[string]*Bucket)
@@ -51,6 +56,7 @@ func (bs *BucketStorageImpl) CreateBucket(body CreateBucketReqBody) error {
 		ServiceID:           body.ServiceID,
 		Tokens:              body.InitialTokens,
 		RefillRatePerSecond: body.RefillRatePerSecond,
+		MaxTokens:           body.MaxTokens,
 		CreatedAt:           time.Now(),
 		LastRefill:          time.Now(),
 		Mu:                  sync.Mutex{},
@@ -110,6 +116,9 @@ func refill(b *Bucket) {
 	refilled := uint64(time.Since(b.LastRefill).Seconds()) * b.RefillRatePerSecond
 	if refilled > 0 {
 		b.Tokens += refilled
+		if b.Tokens >= b.MaxTokens {
+			b.Tokens = b.MaxTokens
+		}
 		log.Printf("event=bucket_refilled client_id=%q service_id=%q tokens_added=%d new_tokens=%d", b.ClientID, b.ServiceID, refilled, b.Tokens)
 	}
 	b.LastRefill = time.Now()
