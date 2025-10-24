@@ -15,8 +15,13 @@ type LimitRule struct {
 	InitialTokens       uint64 `json:"initial_tokens"`
 }
 
+type PersistenceSettings struct {
+	Disabled bool
+}
+
 type Config struct {
-	Rules []LimitRule `json:"rules"`
+	Rules               []LimitRule         `json:"rules"`
+	PersistenceSettings PersistenceSettings `json:"persistence_settings"`
 }
 
 type ConfigParser interface {

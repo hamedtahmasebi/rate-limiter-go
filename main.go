@@ -7,6 +7,8 @@ import (
 	"rate-limiter-go/api"
 	"rate-limiter-go/config"
 	"rate-limiter-go/limiter"
+	"rate-limiter-go/persist"
+	"time"
 
 	"google.golang.org/grpc"
 )
@@ -33,6 +35,31 @@ func main() {
 	mainServiceRegistry := limiter.NewServiceRegistry()
 	log.Printf("event=init action=NewBucketStorage")
 	mainBucketStorage := limiter.NewBucketStorage(mainServiceRegistry)
+
+	if !config.PersistenceSettings.Disabled {
+		persistence_files_dir := "./persistence_files"
+		_, err := os.Stat(persistence_files_dir)
+		if os.IsNotExist(err) {
+			err := os.Mkdir(persistence_files_dir, os.ModePerm)
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		go func() {
+			ticker := time.NewTicker(time.Second * 3)
+			for _ = range ticker.C {
+				allBuckets := mainBucketStorage.GetAllBuckets()
+				for _, b := range allBuckets {
+					persist.SaveToFile(b)
+				}
+			}
+		}()
+	}
 
 	for _, rule := range config.Rules {
 		log.Printf("event=create_service id=%q usage_price_in_tokens=%d", rule.ServiceID, rule.UsagePrice)

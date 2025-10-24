@@ -2,6 +2,7 @@ package limiter
 
 import (
 	"log"
+	"sync"
 	"time"
 )
 
@@ -13,12 +14,13 @@ type CreateBucketReqBody struct {
 }
 
 type Bucket struct {
-	clientID            string
-	serviceID           string
-	tokens              uint64
-	refillRatePerSecond uint64
-	CreatedAt           time.Time
-	LastRefill          time.Time
+	ClientID            string     `json:"client_id"`
+	ServiceID           string     `json:"service_id"`
+	Tokens              uint64     `json:"tokens"`
+	RefillRatePerSecond uint64     `json:"refill_rate_per_second"`
+	CreatedAt           time.Time  `json:"created_at"`
+	LastRefill          time.Time  `json:"last_refill"`
+	Mu                  sync.Mutex `json:"-"`
 }
 
 type AccessStatusResponse struct {
@@ -29,7 +31,7 @@ type AccessStatusResponse struct {
 type BucketStorage interface {
 	CreateBucket(body CreateBucketReqBody) error
 	ConsumeService(clientID string, serviceID string, usageAmount uint64) (AccessStatusResponse, error)
-	// ConsumeTokens(clientID string, serviceID string, amount uint)
+	GetAllBuckets() []*Bucket
 }
 
 type BucketStorageImpl struct {
@@ -45,12 +47,13 @@ func (bs *BucketStorageImpl) CreateBucket(body CreateBucketReqBody) error {
 		bs.BucketsMap[body.ClientID] = clientServices
 	}
 	clientServices[body.ServiceID] = &Bucket{
-		clientID:            body.ClientID,
-		serviceID:           body.ServiceID,
-		tokens:              body.InitialTokens,
-		refillRatePerSecond: body.RefillRatePerSecond,
+		ClientID:            body.ClientID,
+		ServiceID:           body.ServiceID,
+		Tokens:              body.InitialTokens,
+		RefillRatePerSecond: body.RefillRatePerSecond,
 		CreatedAt:           time.Now(),
 		LastRefill:          time.Now(),
+		Mu:                  sync.Mutex{},
 	}
 	log.Printf("event=bucket_created client_id=%q service_id=%q", body.ClientID, body.ServiceID)
 	return nil
@@ -72,28 +75,42 @@ func (bs *BucketStorageImpl) ConsumeService(clientID string, serviceID string, u
 		return accRes, ErrServiceNotFound
 	}
 	refill(b)
-	log.Printf("event=get_bucket_status client_id=%q service_id=%q tokens=%d usage_price=%d", clientID, serviceID, b.tokens, requestedService.UsagePriceInTokens)
-	if b.tokens < requestedService.UsagePriceInTokens {
+	b.Mu.Lock()
+	defer b.Mu.Unlock()
+	log.Printf("event=get_bucket_status client_id=%q service_id=%q tokens=%d usage_price=%d", clientID, serviceID, b.Tokens, requestedService.UsagePriceInTokens)
+	if b.Tokens < requestedService.UsagePriceInTokens {
 		accRes.IsAllowed = false
-		accRes.RetryAfterSeconds = requestedService.UsagePriceInTokens / b.refillRatePerSecond
-		log.Printf("access_denied client_id=%q service_id=%q tokens=%d retry_after=%d", clientID, serviceID, b.tokens, accRes.RetryAfterSeconds)
+		accRes.RetryAfterSeconds = requestedService.UsagePriceInTokens / b.RefillRatePerSecond
+		log.Printf("access_denied client_id=%q service_id=%q tokens=%d retry_after=%d", clientID, serviceID, b.Tokens, accRes.RetryAfterSeconds)
 		return
 	}
-	b.tokens -= requestedService.UsagePriceInTokens * usageAmount
+	b.Tokens -= requestedService.UsagePriceInTokens * usageAmount
 	accRes.IsAllowed = true
-	accRes.RetryAfterSeconds = requestedService.UsagePriceInTokens / b.refillRatePerSecond
-	log.Printf("event=tokens_consumed client_id=%q service_id=%q tokens_left=%d", clientID, serviceID, b.tokens)
+	accRes.RetryAfterSeconds = requestedService.UsagePriceInTokens / b.RefillRatePerSecond
+	log.Printf("event=tokens_consumed client_id=%q service_id=%q tokens_left=%d", clientID, serviceID, b.Tokens)
 	return
+}
+
+func (bs *BucketStorageImpl) GetAllBuckets() []*Bucket {
+	buckets := make([]*Bucket, 0)
+	for _, clientBuckets := range bs.BucketsMap {
+		for _, bucket := range clientBuckets {
+			buckets = append(buckets, bucket)
+		}
+	}
+	return buckets
 }
 
 func refill(b *Bucket) {
 	if b == nil {
 		return
 	}
-	refilled := uint64(time.Since(b.LastRefill).Seconds()) * b.refillRatePerSecond
+	b.Mu.Lock()
+	defer b.Mu.Unlock()
+	refilled := uint64(time.Since(b.LastRefill).Seconds()) * b.RefillRatePerSecond
 	if refilled > 0 {
-		b.tokens += refilled
-		log.Printf("event=bucket_refilled client_id=%q service_id=%q tokens_added=%d new_tokens=%d", b.clientID, b.serviceID, refilled, b.tokens)
+		b.Tokens += refilled
+		log.Printf("event=bucket_refilled client_id=%q service_id=%q tokens_added=%d new_tokens=%d", b.ClientID, b.ServiceID, refilled, b.Tokens)
 	}
 	b.LastRefill = time.Now()
 }
