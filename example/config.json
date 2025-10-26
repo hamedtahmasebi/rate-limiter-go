@@ -19,5 +19,9 @@
             "initial_tokens": 100,
             "max_tokens": 100
         }
-    ]
+    ],
+    "persistence_settings": {
+        "disabled": false,
+        "interval_seconds": 20
+    }
 }

@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-var ErrInvalidMaxTokens = errors.New("Max token should be specified for every rule with a value > 0")
+var ErrInvalidMaxTokens = errors.New("max token should be specified for every rule with a value > 0")
 
 type LimitRule struct {
 	ID                  string `json:"id"`
@@ -20,7 +20,8 @@ type LimitRule struct {
 }
 
 type PersistenceSettings struct {
-	Disabled bool
+	Disabled        bool  `json:"disabled"`
+	IntervalSeconds uint8 `json:"interval_seconds"`
 }
 
 type Config struct {

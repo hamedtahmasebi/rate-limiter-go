@@ -48,9 +48,13 @@ func main() {
 	mainBucketStorage := limiter.NewBucketStorage(mainServiceRegistry)
 
 	if !config.PersistenceSettings.Disabled {
+		var persistInterval uint8 = 10
+		if config.PersistenceSettings.IntervalSeconds > 0 {
+			persistInterval = config.PersistenceSettings.IntervalSeconds
+		}
 		persistence_files_dir := "./persistence_files"
 		persist.InitializePersistenceDir(persistence_files_dir)
-		persist.RunAutoSaveWorker(mainBucketStorage, time.Second*3, persistence_files_dir)
+		persist.RunAutoSaveWorker(mainBucketStorage, time.Second*time.Duration(persistInterval), persistence_files_dir)
 		persist.LoadFromFilesToStorage(persistence_files_dir, mainBucketStorage)
 	}
 
