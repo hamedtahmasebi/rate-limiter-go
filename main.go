@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"log"
 	"net"
 	"os"
@@ -14,6 +15,16 @@ import (
 )
 
 func main() {
+	// setup log file
+	logFile, err := os.OpenFile("./logs/main.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, os.ModePerm)
+	if err != nil {
+		panic(err)
+	}
+	defer logFile.Close()
+	writer := io.MultiWriter(logFile, os.Stdout)
+	log.SetOutput(writer)
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
+	log.Printf("Logger Initialized")
 	// read config
 	if len(os.Args) < 2 {
 		panic("Please provide the path to the config")
@@ -38,27 +49,9 @@ func main() {
 
 	if !config.PersistenceSettings.Disabled {
 		persistence_files_dir := "./persistence_files"
-		_, err := os.Stat(persistence_files_dir)
-		if os.IsNotExist(err) {
-			err := os.Mkdir(persistence_files_dir, os.ModePerm)
-			if err != nil {
-				panic(err)
-			}
-		} else {
-			if err != nil {
-				panic(err)
-			}
-		}
-
-		go func() {
-			ticker := time.NewTicker(time.Second * 3)
-			for _ = range ticker.C {
-				allBuckets := mainBucketStorage.GetAllBuckets()
-				for _, b := range allBuckets {
-					persist.SaveToFile(b)
-				}
-			}
-		}()
+		persist.InitializePersistenceDir(persistence_files_dir)
+		persist.RunAutoSaveWorker(mainBucketStorage, time.Second*3, persistence_files_dir)
+		persist.LoadFromFilesToStorage(persistence_files_dir, mainBucketStorage)
 	}
 
 	for _, rule := range config.Rules {
@@ -84,7 +77,6 @@ func main() {
 			log.Printf("event=create_bucket status=error error=%q", err)
 			panic(err)
 		}
-
 	}
 
 	log.Printf("event=server_setup status=starting")

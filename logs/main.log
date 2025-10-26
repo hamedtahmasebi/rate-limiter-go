@@ -1,0 +1,128 @@
+2025/10/26 13:44:51 main.go:27: Logger Initialized
+2025/10/26 13:44:51 parser.go:50: max tokens = 100
+2025/10/26 13:44:51 parser.go:50: max tokens = 100
+2025/10/26 13:44:51 main.go:45: event=init action=NewServiceRegistry
+2025/10/26 13:44:51 main.go:47: event=init action=NewBucketStorage
+2025/10/26 13:44:51 persist.go:63: event=load_from_files_to_storage status=started dir=./persistence_files
+2025/10/26 13:44:51 persist.go:33: event=load_from_file status=started filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:44:51 token_bucket.go:48: event=create_bucket client_id="mobile_app" service_id="test_service" initial_tokens=10 refill_rate_per_second=1 max_tokens=100
+2025/10/26 13:44:51 token_bucket.go:64: event=bucket_created client_id="mobile_app" service_id="test_service"
+2025/10/26 13:44:51 persist.go:58: event=load_from_file status=success filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:44:51 persist.go:33: event=load_from_file status=started filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:44:51 token_bucket.go:48: event=create_bucket client_id="web_app" service_id="test_service" initial_tokens=10 refill_rate_per_second=1 max_tokens=100
+2025/10/26 13:44:51 token_bucket.go:64: event=bucket_created client_id="web_app" service_id="test_service"
+2025/10/26 13:44:51 persist.go:58: event=load_from_file status=success filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:44:51 main.go:58: event=create_service id="test_service" usage_price_in_tokens=1
+2025/10/26 13:44:51 service_registry.go:36: action=create_service id="test_service" usage_price_in_tokens=1
+2025/10/26 13:44:51 main.go:68: event=create_bucket client_id="web_app" service_id="test_service" initial_tokens=10 refill_rate_per_second=1
+2025/10/26 13:44:51 token_bucket.go:48: event=create_bucket client_id="web_app" service_id="test_service" initial_tokens=10 refill_rate_per_second=1 max_tokens=100
+2025/10/26 13:44:51 token_bucket.go:64: event=bucket_created client_id="web_app" service_id="test_service"
+2025/10/26 13:44:51 main.go:58: event=create_service id="test_service" usage_price_in_tokens=1
+2025/10/26 13:44:51 service_registry.go:36: action=create_service id="test_service" usage_price_in_tokens=1
+2025/10/26 13:44:51 main.go:68: event=create_bucket client_id="mobile_app" service_id="test_service" initial_tokens=10 refill_rate_per_second=1
+2025/10/26 13:44:51 token_bucket.go:48: event=create_bucket client_id="mobile_app" service_id="test_service" initial_tokens=10 refill_rate_per_second=1 max_tokens=100
+2025/10/26 13:44:51 token_bucket.go:64: event=bucket_created client_id="mobile_app" service_id="test_service"
+2025/10/26 13:44:51 main.go:82: event=server_setup status=starting
+2025/10/26 13:44:51 main.go:94: event=server status=listening port=":50051"
+2025/10/26 13:44:54 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:44:54 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:44:57 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:44:57 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:00 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:00 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:03 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:03 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:06 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:06 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:09 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:09 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:12 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:12 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:15 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:15 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:18 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:18 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:21 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:21 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:24 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:24 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:27 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:27 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:30 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:30 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:33 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:33 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:36 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:36 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:39 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:39 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:42 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:42 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:45 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:45 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:48 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:48 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:51 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:51 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:54 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:54 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:45:57 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:45:57 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:00 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:00 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:03 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:03 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:06 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:06 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:09 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:09 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:12 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:12 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:15 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:15 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:18 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:18 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:21 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:21 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:24 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:24 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:27 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:27 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:30 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:30 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:33 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:33 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:36 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:36 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:39 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:39 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:42 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:42 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:45 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:45 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:48 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:48 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:51 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:51 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:54 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:54 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:46:57 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:46:57 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:47:00 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:47:00 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:47:03 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:47:03 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:47:06 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:47:06 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:47:09 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:47:09 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:47:12 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:47:12 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:47:15 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:47:15 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:47:18 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:47:18 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:47:21 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:47:21 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json
+2025/10/26 13:47:24 persist.go:15: event=write_to_file filename=./persistence_files/mobile_app_test_service.json
+2025/10/26 13:47:24 persist.go:15: event=write_to_file filename=./persistence_files/web_app_test_service.json

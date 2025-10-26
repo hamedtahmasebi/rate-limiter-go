@@ -1,2 +1,3 @@
 *.exe
+./logs/*
 ./persistence_files/*
