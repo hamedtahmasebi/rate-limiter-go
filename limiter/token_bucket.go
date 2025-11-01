@@ -1,22 +1,24 @@
 package limiter
 
 import (
+	"errors"
 	"log"
 	"sync"
 	"time"
 )
 
+var ErrBucketNotFound = errors.New("bucket not found")
+var ErrCreateBucketIdCollision = errors.New("a bucket already exists with this id")
+
 type CreateBucketReqBody struct {
-	ClientID            string
-	ServiceID           string
+	ID                  string
 	InitialTokens       uint64
 	RefillRatePerSecond uint64
 	MaxTokens           uint64
 }
 
 type Bucket struct {
-	ClientID            string     `json:"client_id"`
-	ServiceID           string     `json:"service_id"`
+	ID                  string
 	Tokens              uint64     `json:"tokens"`
 	RefillRatePerSecond uint64     `json:"refill_rate_per_second"`
 	CreatedAt           time.Time  `json:"created_at"`
@@ -30,79 +32,115 @@ type AccessStatusResponse struct {
 	RetryAfterSeconds uint64
 }
 
+type ConsumeServiceRequest struct {
+	ServiceID   string
+	ClientID    string
+	UserID      string
+	UsageAmount uint64
+}
+
 type BucketStorage interface {
 	CreateBucket(body CreateBucketReqBody) error
-	ConsumeService(clientID string, serviceID string, usageAmount uint64) (AccessStatusResponse, error)
+	RestoreBucket(body *Bucket) error
+	ConsumeService(body ConsumeServiceRequest) (AccessStatusResponse, error)
 	GetAllBuckets() []*Bucket
+	GetBucket(ID string) (*Bucket, error)
 }
 
 type BucketStorageImpl struct {
-	BucketsMap      map[string]map[string]*Bucket
+	BucketsMap      map[string]*Bucket
 	ServiceRegistry ServiceRegistry
+}
+
+func (bs *BucketStorageImpl) GetBucket(id string) (*Bucket, error) {
+	b, exists := bs.BucketsMap[id]
+	if !exists {
+		return nil, ErrBucketNotFound
+	}
+	return b, nil
+}
+
+func (bs *BucketStorageImpl) RestoreBucket(bucket *Bucket) error {
+	bucket.Mu.Lock()
+	defer bucket.Mu.Unlock()
+
+	_, exists := bs.BucketsMap[bucket.ID]
+	if exists {
+		log.Printf("level=warn event=restore_bucket bucket already exists")
+		return ErrCreateBucketIdCollision
+	}
+	bs.BucketsMap[bucket.ID] = bucket
+	return nil
 }
 
 func (bs *BucketStorageImpl) CreateBucket(body CreateBucketReqBody) error {
 	if body.MaxTokens <= 0 {
-		log.Fatalf("Max Tokens is not defined for bucket, client_id:%s | service_id:%s", body.ClientID, body.ServiceID)
+		log.Fatalf("Max Tokens is not defined for bucket, bucket_id:%s", body.ID)
 	}
-	log.Printf("event=create_bucket client_id=%q service_id=%q initial_tokens=%d refill_rate_per_second=%d max_tokens=%d", body.ClientID, body.ServiceID, body.InitialTokens, body.RefillRatePerSecond, body.MaxTokens)
-	clientServices, csExists := bs.BucketsMap[body.ClientID]
-	if !csExists {
-		clientServices = make(map[string]*Bucket)
-		bs.BucketsMap[body.ClientID] = clientServices
+	log.Printf("event=create_bucket bucket_id=%q initial_tokens=%d refill_rate_per_second=%d max_tokens=%d", body.ID, body.InitialTokens, body.RefillRatePerSecond, body.MaxTokens)
+	_, bExists := bs.BucketsMap[body.ID]
+	if bExists {
+		log.Printf("event=create_bucket status=error errors=%q", ErrCreateBucketIdCollision)
+		return ErrCreateBucketIdCollision
 	}
-	clientServices[body.ServiceID] = &Bucket{
-		ClientID:            body.ClientID,
-		ServiceID:           body.ServiceID,
+	newBucket := &Bucket{
+		ID:                  body.ID,
 		Tokens:              body.InitialTokens,
 		RefillRatePerSecond: body.RefillRatePerSecond,
 		MaxTokens:           body.MaxTokens,
+		Mu:                  sync.Mutex{},
 		CreatedAt:           time.Now(),
 		LastRefill:          time.Now(),
-		Mu:                  sync.Mutex{},
 	}
-	log.Printf("event=bucket_created client_id=%q service_id=%q", body.ClientID, body.ServiceID)
+	bs.BucketsMap[newBucket.ID] = newBucket
+	log.Printf("event=bucket_created bucket_id=%q", newBucket.ID)
+
 	return nil
 }
 
-func (bs *BucketStorageImpl) ConsumeService(clientID string, serviceID string, usageAmount uint64) (accRes AccessStatusResponse, err error) {
-	log.Printf("event=consume_service client_id=%q service_id=%q", clientID, serviceID)
-	requestedService, err := bs.ServiceRegistry.GetService(serviceID)
+func (bs *BucketStorageImpl) ConsumeService(body ConsumeServiceRequest) (accRes AccessStatusResponse, err error) {
+	log.Printf("event=consume_service status=started client_id=%s user_id=%s", body.ClientID, body.UserID)
+	requestedService, err := bs.ServiceRegistry.GetService(body.ServiceID)
 	if err != nil {
-		log.Printf("error=service_not_found client_id=%q service_id=%q err=%v", clientID, serviceID, err)
+		log.Printf("error=service_not_found client_id=%q service_id=%q err=%v", body.ClientID, body.ServiceID, err)
 		return
 	}
-	clientBucket := bs.BucketsMap[clientID]
-	if clientBucket == nil {
-		return accRes, ErrClientNotFound
-	}
-	b := clientBucket[serviceID]
+
+	bucketID := GetBucketID(GetBucketIDRequest{
+		ClientID:  body.ClientID,
+		ServiceID: body.ServiceID,
+		UserID:    body.UserID,
+	})
+	b := bs.BucketsMap[bucketID]
+
 	if b == nil {
-		return accRes, ErrServiceNotFound
+		return accRes, ErrBucketNotFound
 	}
+
 	refill(b)
+
 	b.Mu.Lock()
 	defer b.Mu.Unlock()
-	log.Printf("event=get_bucket_status client_id=%q service_id=%q tokens=%d usage_price=%d", clientID, serviceID, b.Tokens, requestedService.UsagePriceInTokens)
-	if b.Tokens < requestedService.UsagePriceInTokens {
+
+	log.Printf("event=get_bucket_status service_id=%s client_id=%s user_id=%s tokens=%d usage_price=%d", body.ServiceID, body.ClientID, body.UserID, b.Tokens, requestedService.UsagePriceInTokens)
+	consumeAmount := requestedService.UsagePriceInTokens * body.UsageAmount
+	if b.Tokens < consumeAmount {
 		accRes.IsAllowed = false
-		accRes.RetryAfterSeconds = requestedService.UsagePriceInTokens / b.RefillRatePerSecond
-		log.Printf("access_denied client_id=%q service_id=%q tokens=%d retry_after=%d", clientID, serviceID, b.Tokens, accRes.RetryAfterSeconds)
+		accRes.RetryAfterSeconds = (consumeAmount - b.Tokens) / b.RefillRatePerSecond
+		log.Printf("event=insufficient_tokens service_id=%s client_id=%s user_id=%s tokens=%d retry_after=%d", body.ServiceID, body.ClientID, body.UserID, b.Tokens, accRes.RetryAfterSeconds)
 		return
 	}
-	b.Tokens -= requestedService.UsagePriceInTokens * usageAmount
+	b.Tokens -= consumeAmount
 	accRes.IsAllowed = true
-	accRes.RetryAfterSeconds = requestedService.UsagePriceInTokens / b.RefillRatePerSecond
-	log.Printf("event=tokens_consumed client_id=%q service_id=%q tokens_left=%d", clientID, serviceID, b.Tokens)
+	accRes.RetryAfterSeconds = 0
+	log.Printf("event=consume_tokens client_id=%s service_id=%s user_id=%s tokens_consumed=%d tokens_left=%d", body.ClientID, body.ServiceID, body.UserID, consumeAmount, b.Tokens)
 	return
 }
 
 func (bs *BucketStorageImpl) GetAllBuckets() []*Bucket {
 	buckets := make([]*Bucket, 0)
-	for _, clientBuckets := range bs.BucketsMap {
-		for _, bucket := range clientBuckets {
-			buckets = append(buckets, bucket)
-		}
+	for _, b := range bs.BucketsMap {
+		buckets = append(buckets, b)
 	}
 	return buckets
 }
@@ -119,14 +157,24 @@ func refill(b *Bucket) {
 		if b.Tokens >= b.MaxTokens {
 			b.Tokens = b.MaxTokens
 		}
-		log.Printf("event=bucket_refilled client_id=%q service_id=%q tokens_added=%d new_tokens=%d", b.ClientID, b.ServiceID, refilled, b.Tokens)
+		log.Printf("event=bucket_refilled bucket_id=%s tokens_added=%d new_tokens=%d", b.ID, refilled, b.Tokens)
 	}
 	b.LastRefill = time.Now()
 }
 
 func NewBucketStorage(serviceRegistry ServiceRegistry) BucketStorage {
 	return &BucketStorageImpl{
-		BucketsMap:      make(map[string]map[string]*Bucket),
+		BucketsMap:      make(map[string]*Bucket),
 		ServiceRegistry: serviceRegistry,
 	}
+}
+
+type GetBucketIDRequest struct {
+	ServiceID string
+	ClientID  string
+	UserID    string
+}
+
+func GetBucketID(dto GetBucketIDRequest) string {
+	return dto.ServiceID + "_" + dto.ClientID + "_" + dto.UserID
 }

@@ -4,7 +4,8 @@ option go_package = "rate-limiter-go/api";
 message GetAccessStatusRequest {
     string clientID = 1;
     string serviceID = 2;
-    uint64 usageAmountReq = 3;
+    string userID = 3;
+    uint64 usageAmountReq = 4;
 }
 
 

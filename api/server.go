@@ -13,19 +13,41 @@ type Server struct {
 }
 
 func (s *Server) GetAccessStatus(ctx context.Context, req *GetAccessStatusRequest) (*GetAccessStatusResponse, error) {
-	log.Printf("checking access for client_id=%q service_id=%q", req.ClientID, req.ServiceID)
-	service, err := s.ServiceRegistry.GetService(req.ServiceID)
+	log.Printf("level=info event=get_access_status service_id=%s client_id=%s user_id=%s usage_amount=%d", req.ServiceID, req.ClientID, req.UserID, req.UsageAmountReq)
+	_, err := s.ServiceRegistry.GetService(req.ServiceID)
 	if err != nil {
-		log.Printf("error getting service for service_id=%q: %s", req.ServiceID, err)
+		log.Printf("level=error event=get_service_by_id status=error service_id=%q: error=%q", req.ServiceID, err)
 		return nil, err
 	}
-	accessRes, err := s.BucketStorage.ConsumeService(req.ClientID, service.ID, req.UsageAmountReq)
+
+	bucketID := limiter.GetBucketID(limiter.GetBucketIDRequest{
+		ServiceID: req.ServiceID,
+		ClientID:  req.ClientID,
+		UserID:    req.UserID,
+	})
+	bucket, err := s.BucketStorage.GetBucket(bucketID)
+
+	if bucket == nil {
+		s.BucketStorage.CreateBucket(limiter.CreateBucketReqBody{
+			ID:                  bucketID,
+			InitialTokens:       100,
+			RefillRatePerSecond: 1,
+			MaxTokens:           100,
+		})
+	}
+
+	accessRes, err := s.BucketStorage.ConsumeService(limiter.ConsumeServiceRequest{
+		ServiceID:   req.ServiceID,
+		ClientID:    req.ClientID,
+		UserID:      req.UserID,
+		UsageAmount: req.UsageAmountReq,
+	})
 	if err != nil {
-		log.Printf("error consuming service for client_id=%q service_id=%q: %s", req.ClientID, req.ServiceID, err)
+		log.Printf("level=error event=consume_service status=error client_id=%q service_id=%q: error=%q", req.ClientID, req.ServiceID, err)
 		return nil, err
 	}
 	log.Printf(
-		"access status for client_id=%q service_id=%q: allowed=%t retry_after=%d",
+		"level=info event=get_access_status status=success client_id=%q service_id=%q: allowed=%t retry_after=%d",
 		req.ClientID,
 		req.ServiceID,
 		accessRes.IsAllowed,

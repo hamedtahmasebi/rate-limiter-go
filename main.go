@@ -2,13 +2,16 @@ package main
 
 import (
 	"io"
+	"io/fs"
 	"log"
 	"net"
 	"os"
+	"path/filepath"
 	"rate-limiter-go/api"
 	"rate-limiter-go/config"
 	"rate-limiter-go/limiter"
 	"rate-limiter-go/persist"
+	"strings"
 	"time"
 
 	"google.golang.org/grpc"
@@ -52,10 +55,51 @@ func main() {
 		if config.PersistenceSettings.IntervalSeconds > 0 {
 			persistInterval = config.PersistenceSettings.IntervalSeconds
 		}
-		persistence_files_dir := "./persistence_files"
-		persist.InitializePersistenceDir(persistence_files_dir)
-		persist.RunAutoSaveWorker(mainBucketStorage, time.Second*time.Duration(persistInterval), persistence_files_dir)
-		persist.LoadFromFilesToStorage(persistence_files_dir, mainBucketStorage)
+
+		var persistence_dir = "./persistence_files"
+		persist.InitializePersistenceDir(persistence_dir)
+		jw := &persist.JsonWriter[limiter.Bucket]{}
+		if err != nil {
+			panic(err)
+		}
+
+		// Load persisted buckets
+		filepath.WalkDir(persistence_dir, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			if d.IsDir() {
+				return nil
+			}
+			if strings.HasSuffix(path, ".json") {
+				bucket, err := jw.LoadFromFile(path)
+				if err != nil {
+					log.Printf("level=error event=load_persisted_bucket status=error error=%q", err)
+					return err
+				}
+				err = mainBucketStorage.RestoreBucket(bucket)
+				if err != nil {
+					panic(err)
+				}
+			}
+			return nil
+		})
+
+		// Save buckets on an interval
+		go func() {
+			ticker := time.NewTicker(time.Second * time.Duration(persistInterval))
+			for range ticker.C {
+				allBuckets := mainBucketStorage.GetAllBuckets()
+				log.Printf("level=info event=periodic_save start saving %d buckets", len(allBuckets))
+				for _, b := range allBuckets {
+					err := jw.SaveToFile(*b, b.ID)
+					if err != nil {
+						log.Printf("level=error event=persist_to_json status=error err=%q", err)
+					}
+				}
+			}
+		}()
+
 	}
 
 	for _, rule := range config.Rules {
@@ -66,19 +110,6 @@ func main() {
 		}))
 		if err != nil {
 			log.Printf("event=create_service status=error error=%q", err)
-			panic(err)
-		}
-
-		log.Printf("event=create_bucket client_id=%q service_id=%q initial_tokens=%d refill_rate_per_second=%d", rule.ClientID, rule.ServiceID, rule.InitialTokens, rule.RefillRatePerSecond)
-		err = mainBucketStorage.CreateBucket(limiter.CreateBucketReqBody{
-			ClientID:            rule.ClientID,
-			ServiceID:           rule.ServiceID,
-			InitialTokens:       rule.InitialTokens,
-			RefillRatePerSecond: rule.RefillRatePerSecond,
-			MaxTokens:           rule.MaxTokens,
-		})
-		if err != nil {
-			log.Printf("event=create_bucket status=error error=%q", err)
 			panic(err)
 		}
 	}

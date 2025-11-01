@@ -22,6 +22,6 @@
     ],
     "persistence_settings": {
         "disabled": false,
-        "interval_seconds": 20
+        "interval_seconds": 5
     }
 }
