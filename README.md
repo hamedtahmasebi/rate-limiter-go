@@ -22,10 +22,12 @@ This project is a simple gRPC-based rate limiter written in Go. It is a personal
    make compile_proto
    ```
 
-3. **Start the server**:
+3. **Create a configuration file** (JSON format). The config defines rate limiting rules and persistence settings. See example below.
+
+4. **Start the server** with the path to your configuration file:
 
    ```sh
-   go run main.go
+   go run main.go /path/to/config.json
    ```
 
    The service will listen on `localhost:50051` by default.
@@ -46,7 +48,8 @@ service RateLimiter {
 message GetAccessStatusRequest {
     string clientID = 1;
     string serviceID = 2;
-    uint64 usageAmountReq = 3;
+    string userID = 3;
+    uint64 usageAmountReq = 4;
 }
 
 message GetAccessStatusResponse {
@@ -71,6 +74,7 @@ Call the `GetAccessStatus` RPC with the following fields:
 
 - `clientID`: Your unique client identifier (string)
 - `serviceID`: The identifier of the service you want to access (string)
+- `userID`: The identifier of the user making the request (string)
 - `usageAmountReq`: The number of usage units you want to consume (uint64)
 
 #### 3. Interpret the Response
@@ -88,6 +92,7 @@ Call the `GetAccessStatus` RPC with the following fields:
 grpcurl -plaintext -d '{
   "clientID": "main_client",
   "serviceID": "test_service",
+  "userID": "user123",
   "usageAmountReq": 1
 }' localhost:50051 RateLimiter/GetAccessStatus
 ```
@@ -112,11 +117,48 @@ If the request is not allowed:
 
 ---
 
+### Configuration File
+
+The service requires a JSON configuration file that defines rate limiting rules. Example configuration:
+
+```json
+{
+  "rules": [
+    {
+      "id": "rule1",
+      "client_id": "main_client",
+      "service_id": "test_service",
+      "usage_price": 1,
+      "refill_rate_per_second": 1,
+      "initial_tokens": 100,
+      "max_tokens": 100
+    }
+  ],
+  "persistence_settings": {
+    "disabled": false,
+    "interval_seconds": 10
+  }
+}
+```
+
+**Configuration Fields:**
+- `rules`: Array of rate limiting rules. Each rule defines:
+  - `id`: Unique identifier for the rule
+  - `client_id`: Client identifier this rule applies to
+  - `service_id`: Service identifier this rule applies to
+  - `usage_price`: Number of tokens consumed per usage unit
+  - `refill_rate_per_second`: Tokens added per second
+  - `initial_tokens`: Starting token count for new buckets
+  - `max_tokens`: Maximum tokens a bucket can hold (must be > 0)
+- `persistence_settings`: Settings for bucket persistence
+  - `disabled`: If true, buckets are not persisted to disk
+  - `interval_seconds`: How often to save buckets to disk (in seconds)
+
 ### Notes
 
 - This project is for personal learning and experimentation.
-- The service and bucket configuration are hardcoded for demonstration.
-- For custom setups, you may need to modify the source code.
+- Buckets are automatically created when first accessed for a given client, service, and user combination.
+- If persistence is enabled, buckets are saved to the `./persistence_files` directory.
 
 ---
 
