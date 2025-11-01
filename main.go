@@ -2,11 +2,9 @@ package main
 
 import (
 	"io"
-	"io/fs"
 	"log"
 	"net"
 	"os"
-	"path/filepath"
 	"rate-limiter-go/api"
 	"rate-limiter-go/config"
 	"rate-limiter-go/limiter"
@@ -59,31 +57,27 @@ func main() {
 		var persistence_dir = "./persistence_files"
 		persist.InitializePersistenceDir(persistence_dir)
 		jw := &persist.JsonWriter[limiter.Bucket]{}
+
+		// Load persisted buckets
+		entries, err := os.ReadDir(persistence_dir)
 		if err != nil {
 			panic(err)
 		}
-
-		// Load persisted buckets
-		filepath.WalkDir(persistence_dir, func(path string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return err
+		for _, entry := range entries {
+			if entry.IsDir() {
+				continue
 			}
-			if d.IsDir() {
-				return nil
-			}
-			if strings.HasSuffix(path, ".json") {
-				bucket, err := jw.LoadFromFile(path)
+			if strings.HasSuffix(entry.Name(), ".json") {
+				bucket, err := jw.LoadFromFile(entry.Name())
 				if err != nil {
 					log.Printf("level=error event=load_persisted_bucket status=error error=%q", err)
-					return err
 				}
 				err = mainBucketStorage.RestoreBucket(bucket)
 				if err != nil {
 					panic(err)
 				}
 			}
-			return nil
-		})
+		}
 
 		// Save buckets on an interval
 		go func() {
