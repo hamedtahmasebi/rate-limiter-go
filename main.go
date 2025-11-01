@@ -86,10 +86,12 @@ func main() {
 				allBuckets := mainBucketStorage.GetAllBuckets()
 				log.Printf("level=info event=periodic_save start saving %d buckets", len(allBuckets))
 				for _, b := range allBuckets {
+					b.Mu.Lock()
 					err := jw.SaveToFile(*b, b.ID)
 					if err != nil {
 						log.Printf("level=error event=persist_to_json status=error err=%q", err)
 					}
+					b.Mu.Unlock()
 				}
 			}
 		}()

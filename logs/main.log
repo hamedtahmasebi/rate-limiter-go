@@ -1,0 +1,107 @@
+2025/11/01 19:37:48 main.go:28: Logger Initialized
+2025/11/01 19:37:48 parser.go:51: max tokens = 100
+2025/11/01 19:37:48 parser.go:51: max tokens = 100
+2025/11/01 19:37:48 main.go:46: event=init action=NewServiceRegistry
+2025/11/01 19:37:48 main.go:48: event=init action=NewBucketStorage
+2025/11/01 19:37:48 main.go:102: event=create_service id="test_service" usage_price_in_tokens=1
+2025/11/01 19:37:48 service_registry.go:36: action=create_service id="test_service" usage_price_in_tokens=1
+2025/11/01 19:37:48 main.go:102: event=create_service id="test_service" usage_price_in_tokens=1
+2025/11/01 19:37:48 service_registry.go:36: action=create_service id="test_service" usage_price_in_tokens=1
+2025/11/01 19:37:48 main.go:113: event=server_setup status=starting
+2025/11/01 19:37:48 main.go:125: event=server status=listening port=":50051"
+2025/11/01 19:37:51 server.go:16: level=info event=get_access_status service_id=test_service client_id=web_app user_id=u23 usage_amount=10
+2025/11/01 19:37:51 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:51 token_bucket.go:80: event=create_bucket bucket_id="test_service_web_app_u23" initial_tokens=100 refill_rate_per_second=1 max_tokens=100
+2025/11/01 19:37:51 token_bucket.go:96: event=bucket_created bucket_id="test_service_web_app_u23"
+2025/11/01 19:37:51 token_bucket.go:102: event=consume_service status=started client_id=web_app user_id=u23
+2025/11/01 19:37:51 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:51 token_bucket.go:125: event=get_bucket_status service_id=test_service client_id=web_app user_id=u23 tokens=100 usage_price=1
+2025/11/01 19:37:51 token_bucket.go:136: event=consume_tokens client_id=web_app service_id=test_service user_id=u23 tokens_consumed=10 tokens_left=90
+2025/11/01 19:37:51 server.go:49: level=info event=get_access_status status=success client_id="web_app" service_id="test_service": allowed=true retry_after=0
+2025/11/01 19:37:52 server.go:16: level=info event=get_access_status service_id=test_service client_id=web_app user_id=u23 usage_amount=10
+2025/11/01 19:37:52 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:52 token_bucket.go:102: event=consume_service status=started client_id=web_app user_id=u23
+2025/11/01 19:37:52 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:52 token_bucket.go:160: event=bucket_refilled bucket_id=test_service_web_app_u23 tokens_added=1 new_tokens=91
+2025/11/01 19:37:52 token_bucket.go:125: event=get_bucket_status service_id=test_service client_id=web_app user_id=u23 tokens=91 usage_price=1
+2025/11/01 19:37:52 token_bucket.go:136: event=consume_tokens client_id=web_app service_id=test_service user_id=u23 tokens_consumed=10 tokens_left=81
+2025/11/01 19:37:52 server.go:49: level=info event=get_access_status status=success client_id="web_app" service_id="test_service": allowed=true retry_after=0
+2025/11/01 19:37:53 server.go:16: level=info event=get_access_status service_id=test_service client_id=web_app user_id=u23 usage_amount=10
+2025/11/01 19:37:53 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:53 token_bucket.go:102: event=consume_service status=started client_id=web_app user_id=u23
+2025/11/01 19:37:53 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:53 token_bucket.go:125: event=get_bucket_status service_id=test_service client_id=web_app user_id=u23 tokens=81 usage_price=1
+2025/11/01 19:37:53 token_bucket.go:136: event=consume_tokens client_id=web_app service_id=test_service user_id=u23 tokens_consumed=10 tokens_left=71
+2025/11/01 19:37:53 server.go:49: level=info event=get_access_status status=success client_id="web_app" service_id="test_service": allowed=true retry_after=0
+2025/11/01 19:37:53 main.go:87: level=info event=periodic_save start saving 1 buckets
+2025/11/01 19:37:54 server.go:16: level=info event=get_access_status service_id=test_service client_id=web_app user_id=u23 usage_amount=10
+2025/11/01 19:37:54 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:54 token_bucket.go:102: event=consume_service status=started client_id=web_app user_id=u23
+2025/11/01 19:37:54 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:54 token_bucket.go:125: event=get_bucket_status service_id=test_service client_id=web_app user_id=u23 tokens=71 usage_price=1
+2025/11/01 19:37:54 token_bucket.go:136: event=consume_tokens client_id=web_app service_id=test_service user_id=u23 tokens_consumed=10 tokens_left=61
+2025/11/01 19:37:54 server.go:49: level=info event=get_access_status status=success client_id="web_app" service_id="test_service": allowed=true retry_after=0
+2025/11/01 19:37:55 server.go:16: level=info event=get_access_status service_id=test_service client_id=web_app user_id=u23 usage_amount=10
+2025/11/01 19:37:55 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:55 token_bucket.go:102: event=consume_service status=started client_id=web_app user_id=u23
+2025/11/01 19:37:55 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:55 token_bucket.go:125: event=get_bucket_status service_id=test_service client_id=web_app user_id=u23 tokens=61 usage_price=1
+2025/11/01 19:37:55 token_bucket.go:136: event=consume_tokens client_id=web_app service_id=test_service user_id=u23 tokens_consumed=10 tokens_left=51
+2025/11/01 19:37:55 server.go:49: level=info event=get_access_status status=success client_id="web_app" service_id="test_service": allowed=true retry_after=0
+2025/11/01 19:37:56 server.go:16: level=info event=get_access_status service_id=test_service client_id=web_app user_id=u23 usage_amount=10
+2025/11/01 19:37:56 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:56 token_bucket.go:102: event=consume_service status=started client_id=web_app user_id=u23
+2025/11/01 19:37:56 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:56 token_bucket.go:125: event=get_bucket_status service_id=test_service client_id=web_app user_id=u23 tokens=51 usage_price=1
+2025/11/01 19:37:56 token_bucket.go:136: event=consume_tokens client_id=web_app service_id=test_service user_id=u23 tokens_consumed=10 tokens_left=41
+2025/11/01 19:37:56 server.go:49: level=info event=get_access_status status=success client_id="web_app" service_id="test_service": allowed=true retry_after=0
+2025/11/01 19:37:57 server.go:16: level=info event=get_access_status service_id=test_service client_id=web_app user_id=u23 usage_amount=10
+2025/11/01 19:37:57 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:57 token_bucket.go:102: event=consume_service status=started client_id=web_app user_id=u23
+2025/11/01 19:37:57 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:57 token_bucket.go:125: event=get_bucket_status service_id=test_service client_id=web_app user_id=u23 tokens=41 usage_price=1
+2025/11/01 19:37:57 token_bucket.go:136: event=consume_tokens client_id=web_app service_id=test_service user_id=u23 tokens_consumed=10 tokens_left=31
+2025/11/01 19:37:57 server.go:49: level=info event=get_access_status status=success client_id="web_app" service_id="test_service": allowed=true retry_after=0
+2025/11/01 19:37:57 server.go:16: level=info event=get_access_status service_id=test_service client_id=web_app user_id=u23 usage_amount=10
+2025/11/01 19:37:57 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:57 token_bucket.go:102: event=consume_service status=started client_id=web_app user_id=u23
+2025/11/01 19:37:57 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:57 token_bucket.go:125: event=get_bucket_status service_id=test_service client_id=web_app user_id=u23 tokens=31 usage_price=1
+2025/11/01 19:37:57 token_bucket.go:136: event=consume_tokens client_id=web_app service_id=test_service user_id=u23 tokens_consumed=10 tokens_left=21
+2025/11/01 19:37:57 server.go:49: level=info event=get_access_status status=success client_id="web_app" service_id="test_service": allowed=true retry_after=0
+2025/11/01 19:37:58 server.go:16: level=info event=get_access_status service_id=test_service client_id=web_app user_id=u23 usage_amount=10
+2025/11/01 19:37:58 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:58 token_bucket.go:102: event=consume_service status=started client_id=web_app user_id=u23
+2025/11/01 19:37:58 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:58 token_bucket.go:125: event=get_bucket_status service_id=test_service client_id=web_app user_id=u23 tokens=21 usage_price=1
+2025/11/01 19:37:58 token_bucket.go:136: event=consume_tokens client_id=web_app service_id=test_service user_id=u23 tokens_consumed=10 tokens_left=11
+2025/11/01 19:37:58 server.go:49: level=info event=get_access_status status=success client_id="web_app" service_id="test_service": allowed=true retry_after=0
+2025/11/01 19:37:58 main.go:87: level=info event=periodic_save start saving 1 buckets
+2025/11/01 19:37:59 server.go:16: level=info event=get_access_status service_id=test_service client_id=web_app user_id=u23 usage_amount=10
+2025/11/01 19:37:59 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:59 token_bucket.go:102: event=consume_service status=started client_id=web_app user_id=u23
+2025/11/01 19:37:59 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:37:59 token_bucket.go:125: event=get_bucket_status service_id=test_service client_id=web_app user_id=u23 tokens=11 usage_price=1
+2025/11/01 19:37:59 token_bucket.go:136: event=consume_tokens client_id=web_app service_id=test_service user_id=u23 tokens_consumed=10 tokens_left=1
+2025/11/01 19:37:59 server.go:49: level=info event=get_access_status status=success client_id="web_app" service_id="test_service": allowed=true retry_after=0
+2025/11/01 19:38:00 server.go:16: level=info event=get_access_status service_id=test_service client_id=web_app user_id=u23 usage_amount=10
+2025/11/01 19:38:00 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:38:00 token_bucket.go:102: event=consume_service status=started client_id=web_app user_id=u23
+2025/11/01 19:38:00 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:38:00 token_bucket.go:160: event=bucket_refilled bucket_id=test_service_web_app_u23 tokens_added=1 new_tokens=2
+2025/11/01 19:38:00 token_bucket.go:125: event=get_bucket_status service_id=test_service client_id=web_app user_id=u23 tokens=2 usage_price=1
+2025/11/01 19:38:00 token_bucket.go:130: event=insufficient_tokens service_id=test_service client_id=web_app user_id=u23 tokens=2 retry_after=8
+2025/11/01 19:38:00 server.go:49: level=info event=get_access_status status=success client_id="web_app" service_id="test_service": allowed=false retry_after=8
+2025/11/01 19:38:03 main.go:87: level=info event=periodic_save start saving 1 buckets
+2025/11/01 19:38:08 main.go:87: level=info event=periodic_save start saving 1 buckets
+2025/11/01 19:38:13 server.go:16: level=info event=get_access_status service_id=test_service client_id=web_app user_id=u24 usage_amount=10
+2025/11/01 19:38:13 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:38:13 token_bucket.go:80: event=create_bucket bucket_id="test_service_web_app_u24" initial_tokens=100 refill_rate_per_second=1 max_tokens=100
+2025/11/01 19:38:13 token_bucket.go:96: event=bucket_created bucket_id="test_service_web_app_u24"
+2025/11/01 19:38:13 token_bucket.go:102: event=consume_service status=started client_id=web_app user_id=u24
+2025/11/01 19:38:13 service_registry.go:60: action=get_service id="test_service"
+2025/11/01 19:38:13 token_bucket.go:125: event=get_bucket_status service_id=test_service client_id=web_app user_id=u24 tokens=100 usage_price=1
+2025/11/01 19:38:13 token_bucket.go:136: event=consume_tokens client_id=web_app service_id=test_service user_id=u24 tokens_consumed=10 tokens_left=90
+2025/11/01 19:38:13 server.go:49: level=info event=get_access_status status=success client_id="web_app" service_id="test_service": allowed=true retry_after=0
+2025/11/01 19:38:13 main.go:87: level=info event=periodic_save start saving 2 buckets
+2025/11/01 19:38:18 main.go:87: level=info event=periodic_save start saving 2 buckets
