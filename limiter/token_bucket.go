@@ -27,22 +27,10 @@ type Bucket struct {
 	Mu                  sync.Mutex `json:"-"`
 }
 
-type AccessStatusResponse struct {
-	IsAllowed         bool
-	RetryAfterSeconds uint64
-}
-
-type ConsumeServiceRequest struct {
-	ServiceID   string
-	ClientID    string
-	UserID      string
-	UsageAmount uint64
-}
-
 type BucketStorage interface {
-	CreateBucket(body CreateBucketReqBody) error
+	createBucket(body CreateBucketReqBody) error
 	RestoreBucket(body *Bucket) error
-	ConsumeService(body ConsumeServiceRequest) (AccessStatusResponse, error)
+	ConsumeService(body RateLimitingReqeustContext) (RateLimitResponse, error)
 	GetAllBuckets() []*Bucket
 	GetBucket(ID string) (*Bucket, error)
 }
@@ -73,7 +61,7 @@ func (bs *BucketStorageImpl) RestoreBucket(bucket *Bucket) error {
 	return nil
 }
 
-func (bs *BucketStorageImpl) CreateBucket(body CreateBucketReqBody) error {
+func (bs *BucketStorageImpl) createBucket(body CreateBucketReqBody) error {
 	if body.MaxTokens <= 0 {
 		log.Fatalf("Max Tokens is not defined for bucket, bucket_id:%s", body.ID)
 	}
@@ -98,19 +86,29 @@ func (bs *BucketStorageImpl) CreateBucket(body CreateBucketReqBody) error {
 	return nil
 }
 
-func (bs *BucketStorageImpl) ConsumeService(body ConsumeServiceRequest) (accRes AccessStatusResponse, err error) {
+func (bs *BucketStorageImpl) ConsumeService(body RateLimitingReqeustContext) (accRes RateLimitResponse, err error) {
+	bucketID := GetBucketID(GetBucketIDRequest{
+		ServiceID: body.ServiceID,
+		ClientID:  body.ClientID,
+		UserID:    body.UserID,
+	})
+	bucket, err := bs.GetBucket(bucketID)
+
+	if bucket == nil {
+		bs.createBucket(CreateBucketReqBody{
+			ID:                  bucketID,
+			InitialTokens:       100,
+			RefillRatePerSecond: 1,
+			MaxTokens:           100,
+		})
+	}
+
 	log.Printf("event=consume_service status=started client_id=%s user_id=%s", body.ClientID, body.UserID)
 	requestedService, err := bs.ServiceRegistry.GetService(body.ServiceID)
 	if err != nil {
 		log.Printf("error=service_not_found client_id=%q service_id=%q err=%v", body.ClientID, body.ServiceID, err)
 		return
 	}
-
-	bucketID := GetBucketID(GetBucketIDRequest{
-		ClientID:  body.ClientID,
-		ServiceID: body.ServiceID,
-		UserID:    body.UserID,
-	})
 	b := bs.BucketsMap[bucketID]
 
 	if b == nil {

@@ -118,7 +118,7 @@ func main() {
 	}
 	grpcServer := grpc.NewServer()
 	api.RegisterRateLimiterServer(grpcServer, &api.Server{
-		BucketStorage:   mainBucketStorage,
+		Limiter:         mainBucketStorage,
 		ServiceRegistry: mainServiceRegistry,
 	})
 
