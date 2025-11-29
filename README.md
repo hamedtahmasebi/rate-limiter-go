@@ -2,6 +2,8 @@
 
 This project is a simple gRPC-based rate limiter written in Go. It is a personal practice project designed to help the author learn gRPC and Go more deeply. The service exposes a gRPC API for rate limiting, which can be integrated into distributed systems or used as a standalone service for experimentation.
 
+## NO AI WAS USED FOR WRITING THE CODE, BUT THE DOCS ARE AI GENERATED
+
 ---
 
 ## User Documentation
